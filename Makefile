@@ -10,4 +10,7 @@ migrate_force:
 sqlc:
 	sqlc generate
 
-.PHONY: migrate_up, migrate_down,  migrate_force, sqlc
+test:
+	go test ./...
+
+.PHONY: migrate_up, migrate_down,  migrate_force, sqlc, test

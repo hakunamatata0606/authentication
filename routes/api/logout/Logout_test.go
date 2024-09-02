@@ -1,10 +1,12 @@
-package auth
+package logout
 
 import (
 	"authentication/config"
+	"authentication/middlewares/authorization"
 	"authentication/models"
 	"authentication/routes/api/login"
 	"authentication/service/auth"
+	"authentication/service/blacklist"
 	"authentication/service/password"
 	"authentication/service/token"
 	"database/sql"
@@ -16,20 +18,28 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 )
 
-func TestAuthorization(t *testing.T) {
+func TestLogout(t *testing.T) {
 	r := gin.Default()
+
 	tokenManager := token.NewJwtTokenManager("secret")
 	conn, err := sql.Open("mysql", "bao:123@tcp(172.17.0.2:3306)/test")
 	require.Nil(t, err)
 	pwdManager := password.NewSha256Hash("")
 	verifier := auth.NewMysqlAuth(conn, pwdManager)
+	rbl := blacklist.NewRedisBlackList(&redis.Options{
+		Addr: "localhost:6379",
+	})
 	r.POST("/login", login.LoginApi(config.GetConfig(), verifier, tokenManager))
 	protectedGroup := r.Group("/")
-	protectedGroup.Use(AuthorizationMW(tokenManager))
-	protectedGroup.GET("/protected", HandleWithClaims(func(ctx *gin.Context, cm *token.ClaimMap) {
+	protectedGroup.Use(authorization.AuthorizationMW(tokenManager, rbl))
+
+	protectedGroup.POST("/logout", LogoutApi(config.GetConfig(), tokenManager, rbl))
+
+	protectedGroup.GET("/protected", authorization.HandleWithClaims(func(ctx *gin.Context, cm *token.ClaimMap) {
 		u, ok := (*cm)["user"].(string)
 		if !ok {
 			ctx.Status(http.StatusInternalServerError)
@@ -59,6 +69,7 @@ func TestAuthorization(t *testing.T) {
 
 	tokenStr, ok := jsonMap["token"].(string)
 	require.True(t, ok)
+
 	claims, err := tokenManager.ParseToken(tokenStr)
 	require.Nil(t, err)
 	username, ok := claims["user"].(string)
@@ -68,35 +79,39 @@ func TestAuthorization(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "user", role)
 
-	bearer := "Bearer " + tokenStr
+	tokenStr, ok = jsonMap["refresh_token"].(string)
+	require.True(t, ok)
+
+	claims, err = tokenManager.ParseToken(tokenStr)
+	require.Nil(t, err)
+	username, ok = claims["user"].(string)
+	require.True(t, ok)
+	require.Equal(t, "foo", username)
+	role, ok = claims["role"]
+	require.True(t, ok)
+	require.Equal(t, "user", role)
 
 	request, err = http.NewRequest("GET", "/protected", nil)
 	require.Nil(t, err)
-
+	bearer := "Bearer " + tokenStr
 	request.Header.Add("Authorization", bearer)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, request)
 	require.Equal(t, http.StatusOK, w.Code)
 	require.Equal(t, "hello foo", w.Body.String())
 
-	//failure redirect
-
-	bearer = "Bearer " + "lala"
+	request, err = http.NewRequest("POST", "/logout", nil)
+	request.Header.Add("Authorization", bearer)
+	require.Nil(t, err)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, request)
+	require.Equal(t, http.StatusOK, w.Code)
 
 	request, err = http.NewRequest("GET", "/protected", nil)
 	require.Nil(t, err)
-
 	request.Header.Add("Authorization", bearer)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, request)
-	require.Equal(t, http.StatusTemporaryRedirect, w.Code)
-	require.Equal(t, "/refresh_token", w.Result().Header.Get("Location"))
-
-	//failure
-	request, err = http.NewRequest("GET", "/protected", nil)
-	require.Nil(t, err)
-
-	w = httptest.NewRecorder()
-	r.ServeHTTP(w, request)
 	require.Equal(t, http.StatusUnauthorized, w.Code)
+
 }

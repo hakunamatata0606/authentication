@@ -64,6 +64,7 @@ func (jwtManager *JwtTokenManager) ParseToken(tokenStr string) (ClaimMap, error)
 	for k, v := range jwtClaims {
 		claims[k] = v
 	}
+	claims["token"] = tokenStr
 
 	return claims, nil
 }

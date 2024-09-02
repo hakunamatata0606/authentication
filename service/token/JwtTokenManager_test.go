@@ -20,6 +20,7 @@ func TestJwt(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "bar", claims["foo"])
 	require.Equal(t, "xyz", claims["abc"])
+	require.Equal(t, tokenStr, claims["token"])
 
 	_, ok := claims["dummy"]
 	require.Equal(t, false, ok)

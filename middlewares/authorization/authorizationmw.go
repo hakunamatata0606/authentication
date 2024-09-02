@@ -1,15 +1,15 @@
-package auth
+package authorization
 
 import (
+	"authentication/service/blacklist"
 	"authentication/service/token"
-	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-func AuthorizationMW(tokenManager token.TokenManager) gin.HandlerFunc {
+func AuthorizationMW(tokenManager token.TokenManager, bl blacklist.BlackList) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		auths, ok := ctx.Request.Header["Authorization"]
 		if !ok || len(auths) == 0 {
@@ -24,6 +24,11 @@ func AuthorizationMW(tokenManager token.TokenManager) gin.HandlerFunc {
 			return
 		}
 		token := auth[1]
+		if bl.IsExist(ctx, token) == nil {
+			ctx.Status(http.StatusUnauthorized)
+			ctx.Abort()
+			return
+		}
 		claims, err := tokenManager.ParseToken(token)
 		if err != nil {
 			ctx.Redirect(http.StatusTemporaryRedirect, "/refresh_token")
@@ -39,14 +44,12 @@ func HandleWithClaims(handle func(*gin.Context, *token.ClaimMap)) gin.HandlerFun
 	return func(ctx *gin.Context) {
 		c, ok := ctx.Get("tokenClaims")
 		if !ok {
-			fmt.Println("aloha1")
 			ctx.Status(http.StatusInternalServerError)
 			ctx.Abort()
 			return
 		}
 		claims, ok := c.(token.ClaimMap)
 		if !ok {
-			fmt.Println("aloha2")
 			ctx.Status(http.StatusInternalServerError)
 			ctx.Abort()
 			return
