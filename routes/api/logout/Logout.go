@@ -23,7 +23,7 @@ func LogoutApi(config *config.Config, tokenManager token.TokenManager, bl blackl
 			ctx.Status(http.StatusInternalServerError)
 			return
 		}
-		timeout := (config.RefreshTokenTimeout - config.TokenTimeout) - (int64(tokenExp) - time.Now().Unix())
+		timeout := (config.Token.RefreshTokenTimeout - config.Token.TokenTimeout) - (int64(tokenExp) - time.Now().Unix())
 		bl.Add(ctx, token, "", time.Duration(timeout*int64(time.Second)))
 		ctx.Status(http.StatusOK)
 	})

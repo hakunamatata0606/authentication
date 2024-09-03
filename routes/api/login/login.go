@@ -24,14 +24,14 @@ func LoginApi(config *config.Config, verifier auth.VerifyAuth, tokenManager toke
 			ctx.Abort()
 			return
 		}
-		token, err := tokenManager.CreateToken(claims, config.TokenTimeout)
+		token, err := tokenManager.CreateToken(claims, config.Token.TokenTimeout)
 		if err != nil {
 			ctx.Status(http.StatusInternalServerError)
 			ctx.Abort()
 			return
 		}
 
-		refreshToken, err := tokenManager.CreateToken(claims, config.RefreshTokenTimeout)
+		refreshToken, err := tokenManager.CreateToken(claims, config.Token.RefreshTokenTimeout)
 		if err != nil {
 			ctx.Status(http.StatusInternalServerError)
 			ctx.Abort()

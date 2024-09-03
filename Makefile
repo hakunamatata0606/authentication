@@ -11,6 +11,6 @@ sqlc:
 	sqlc generate
 
 test:
-	go test ./...
+	ROOT_DIR=/home/bao/go_proj/authentication go test ./...
 
 .PHONY: migrate_up, migrate_down,  migrate_force, sqlc, test

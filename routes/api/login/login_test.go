@@ -2,6 +2,7 @@ package login
 
 import (
 	"authentication/config"
+	db "authentication/db/sqlc"
 	"authentication/models"
 	"authentication/service/auth"
 	"authentication/service/password"
@@ -20,12 +21,13 @@ import (
 
 func TestLogin(t *testing.T) {
 	r := gin.Default()
-
+	c := config.GetConfig()
 	tokenManager := token.NewJwtTokenManager("secret")
-	conn, err := sql.Open("mysql", "bao:123@tcp(172.17.0.2:3306)/test")
+	conn, err := sql.Open(c.Db.Driver, c.Db.Addr)
+	repo := db.NewRepository(conn)
 	require.Nil(t, err)
 	pwdManager := password.NewSha256Hash("")
-	verifier := auth.NewMysqlAuth(conn, pwdManager)
+	verifier := auth.NewMysqlAuth(repo, pwdManager)
 	r.POST("/login", LoginApi(config.GetConfig(), verifier, tokenManager))
 
 	u := models.UserDetail{

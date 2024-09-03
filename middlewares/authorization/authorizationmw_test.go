@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"authentication/config"
+	db "authentication/db/sqlc"
 	"authentication/models"
 	"authentication/routes/api/login"
 	"authentication/service/auth"
@@ -23,14 +24,17 @@ import (
 
 func TestAuthorization(t *testing.T) {
 	r := gin.Default()
+
 	tokenManager := token.NewJwtTokenManager("secret")
-	conn, err := sql.Open("mysql", "bao:123@tcp(172.17.0.2:3306)/test")
+	c := config.GetConfig()
+	conn, err := sql.Open(c.Db.Driver, c.Db.Addr)
+	repo := db.NewRepository(conn)
 	require.Nil(t, err)
 	pwdManager := password.NewSha256Hash("")
 	rbl := blacklist.NewRedisBlackList(&redis.Options{
-		Addr: "localhost:6379",
+		Addr: c.Redis.Addr,
 	})
-	verifier := auth.NewMysqlAuth(conn, pwdManager)
+	verifier := auth.NewMysqlAuth(repo, pwdManager)
 	r.POST("/login", login.LoginApi(config.GetConfig(), verifier, tokenManager))
 	protectedGroup := r.Group("/")
 	protectedGroup.Use(AuthorizationMW(tokenManager, rbl))

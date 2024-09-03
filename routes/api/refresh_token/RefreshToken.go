@@ -24,13 +24,13 @@ func RefreshTokenApi(config *config.Config, tokenManager token.TokenManager) gin
 			ctx.Abort()
 			return
 		}
-		token, err := tokenManager.CreateToken(claims, config.TokenTimeout)
+		token, err := tokenManager.CreateToken(claims, config.Token.TokenTimeout)
 		if err != nil {
 			ctx.Status(http.StatusInternalServerError)
 			ctx.Abort()
 			return
 		}
-		refreshToken, err := tokenManager.CreateToken(claims, config.TokenTimeout)
+		refreshToken, err := tokenManager.CreateToken(claims, config.Token.TokenTimeout)
 		if err != nil {
 			ctx.Status(http.StatusInternalServerError)
 			ctx.Abort()

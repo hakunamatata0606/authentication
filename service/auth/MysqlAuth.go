@@ -6,7 +6,6 @@ import (
 	"authentication/service/password"
 	"authentication/service/token"
 	"context"
-	"database/sql"
 	"fmt"
 )
 
@@ -15,9 +14,9 @@ type MysqlAuth struct {
 	pwdVerify password.PasswordManager
 }
 
-func NewMysqlAuth(dbP *sql.DB, pwdVerify password.PasswordManager) VerifyAuth {
+func NewMysqlAuth(repo db.RepositoryInterface, pwdVerify password.PasswordManager) VerifyAuth {
 	return &MysqlAuth{
-		repo:      db.NewRepository(dbP),
+		repo:      repo,
 		pwdVerify: pwdVerify,
 	}
 }

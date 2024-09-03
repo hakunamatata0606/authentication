@@ -2,6 +2,7 @@ package logout
 
 import (
 	"authentication/config"
+	db "authentication/db/sqlc"
 	"authentication/middlewares/authorization"
 	"authentication/models"
 	"authentication/routes/api/login"
@@ -26,10 +27,12 @@ func TestLogout(t *testing.T) {
 	r := gin.Default()
 
 	tokenManager := token.NewJwtTokenManager("secret")
-	conn, err := sql.Open("mysql", "bao:123@tcp(172.17.0.2:3306)/test")
+	c := config.GetConfig()
+	conn, err := sql.Open(c.Db.Driver, c.Db.Addr)
+	repo := db.NewRepository(conn)
 	require.Nil(t, err)
 	pwdManager := password.NewSha256Hash("")
-	verifier := auth.NewMysqlAuth(conn, pwdManager)
+	verifier := auth.NewMysqlAuth(repo, pwdManager)
 	rbl := blacklist.NewRedisBlackList(&redis.Options{
 		Addr: "localhost:6379",
 	})

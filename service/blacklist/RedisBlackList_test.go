@@ -1,6 +1,7 @@
 package blacklist
 
 import (
+	"authentication/config"
 	"context"
 	"testing"
 	"time"
@@ -10,8 +11,9 @@ import (
 )
 
 func TestRedisBlackList(t *testing.T) {
+	c := config.GetConfig()
 	rbl := NewRedisBlackList(&redis.Options{
-		Addr: "localhost:6379",
+		Addr: c.Redis.Addr,
 	})
 	key := "aloha"
 

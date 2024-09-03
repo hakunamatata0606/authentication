@@ -1,6 +1,7 @@
 package db
 
 import (
+	"authentication/config"
 	"database/sql"
 	"log"
 	"os"
@@ -13,11 +14,12 @@ var testConn *sql.DB
 var testQueries *Queries
 
 func TestMain(m *testing.M) {
-	conn, err := sql.Open("mysql", "bao:123@tcp(172.17.0.2:3306)/test")
+	c := config.GetConfig()
+	conn, err := sql.Open(c.Db.Driver, c.Db.Addr)
 	if err != nil {
 		log.Fatal("failed to connect to datbase")
 	}
-	testConn, err = sql.Open("mysql", "bao:123@tcp(172.17.0.2:3306)/test")
+	testConn, err = sql.Open(c.Db.Driver, c.Db.Addr)
 	if err != nil {
 		log.Fatal("failed to connect to datbase 1")
 	}
