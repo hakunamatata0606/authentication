@@ -80,7 +80,7 @@ func TestLogout(t *testing.T) {
 	require.Equal(t, "foo", username)
 	role, ok := claims["role"]
 	require.True(t, ok)
-	require.Equal(t, "user", role)
+	require.Equal(t, []interface{}([]interface{}{"user"}), role)
 
 	tokenStr, ok = jsonMap["refresh_token"].(string)
 	require.True(t, ok)
@@ -92,7 +92,7 @@ func TestLogout(t *testing.T) {
 	require.Equal(t, "foo", username)
 	role, ok = claims["role"]
 	require.True(t, ok)
-	require.Equal(t, "user", role)
+	require.Equal(t, []interface{}([]interface{}{"user"}), role)
 
 	request, err = http.NewRequest("GET", "/protected", nil)
 	require.Nil(t, err)

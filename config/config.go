@@ -9,8 +9,9 @@ import (
 )
 
 type TokenConfig struct {
-	TokenTimeout        int64 `yaml:"token_timeout"`
-	RefreshTokenTimeout int64 `yaml:"refresh_token_timeout"`
+	TokenTimeout        int64  `yaml:"token_timeout"`
+	RefreshTokenTimeout int64  `yaml:"refresh_token_timeout"`
+	Secret              string `yaml:"secret"`
 }
 
 type DbConfig struct {
@@ -23,9 +24,10 @@ type RedisConfig struct {
 }
 
 type Config struct {
-	Token TokenConfig `yaml:"token"`
-	Db    DbConfig    `yaml:"db"`
-	Redis RedisConfig `yaml:"redis"`
+	Token      TokenConfig `yaml:"token"`
+	Db         DbConfig    `yaml:"db"`
+	Redis      RedisConfig `yaml:"redis"`
+	ServerAddr string      `yaml:"server_addr"`
 }
 
 const (
@@ -38,7 +40,9 @@ var globalConfig = Config{
 	Token: TokenConfig{
 		TokenTimeout:        defaultTokenTimeout,
 		RefreshTokenTimeout: defaultRefreshTokenTimeout,
+		Secret:              "secret",
 	},
+	ServerAddr: "localhost:8080",
 }
 
 func GetConfig() *Config {

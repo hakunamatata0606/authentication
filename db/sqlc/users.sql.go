@@ -70,18 +70,19 @@ func (q *Queries) GetUserNoUpdate(ctx context.Context, username string) (User, e
 }
 
 const getUserRole = `-- name: GetUserRole :one
-select users.username, users.password, users.email, role_details.detail as role_detail from users
+select users.username, users.password, users.email, group_concat(role_details.detail) as role_details from users
 inner join user_roles on users.id = user_roles.user_id
 inner join role_details on user_roles.role_id = role_details.id
 where username = ?
+group by users.id
 limit 1
 `
 
 type GetUserRoleRow struct {
-	Username   string `json:"username"`
-	Password   string `json:"password"`
-	Email      string `json:"email"`
-	RoleDetail string `json:"role_detail"`
+	Username    string         `json:"username"`
+	Password    string         `json:"password"`
+	Email       string         `json:"email"`
+	RoleDetails sql.NullString `json:"role_details"`
 }
 
 func (q *Queries) GetUserRole(ctx context.Context, username string) (GetUserRoleRow, error) {
@@ -91,7 +92,7 @@ func (q *Queries) GetUserRole(ctx context.Context, username string) (GetUserRole
 		&i.Username,
 		&i.Password,
 		&i.Email,
-		&i.RoleDetail,
+		&i.RoleDetails,
 	)
 	return i, err
 }

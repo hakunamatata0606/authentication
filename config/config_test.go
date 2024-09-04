@@ -13,4 +13,6 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, "mysql", c.Db.Driver)
 	require.Equal(t, "bao:123@tcp(172.17.0.2:3306)/test", c.Db.Addr)
 	require.Equal(t, "localhost:6379", c.Redis.Addr)
+	require.Equal(t, "aloha", c.Token.Secret)
+	require.Equal(t, "localhost:8080", c.ServerAddr)
 }

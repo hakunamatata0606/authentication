@@ -75,7 +75,7 @@ func TestAuthorization(t *testing.T) {
 	require.Equal(t, "foo", username)
 	role, ok := claims["role"]
 	require.True(t, ok)
-	require.Equal(t, "user", role)
+	require.Equal(t, []interface{}([]interface{}{"user"}), role)
 
 	bearer := "Bearer " + tokenStr
 

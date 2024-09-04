@@ -26,7 +26,8 @@ func TestRepository(t *testing.T) {
 	require.Equal(t, username, user.Username)
 	require.Equal(t, password, user.Password)
 	require.Equal(t, email, user.Email)
-	require.Equal(t, role, user.RoleDetail)
+	require.True(t, user.RoleDetails.Valid)
+	require.Equal(t, role, user.RoleDetails.String)
 
 	err = repo.RemoveUser(ctx, username)
 	require.Nil(t, err)

@@ -4,6 +4,7 @@ import (
 	"authentication/config"
 	"authentication/models"
 	"authentication/service/token"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,7 @@ import (
 
 func RefreshTokenApi(config *config.Config, tokenManager token.TokenManager) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		fmt.Println("check 1")
 		var data models.RefreshTokenData
 		err := ctx.BindJSON(&data)
 		if err != nil {

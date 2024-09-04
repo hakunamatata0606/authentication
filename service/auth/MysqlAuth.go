@@ -7,6 +7,7 @@ import (
 	"authentication/service/token"
 	"context"
 	"fmt"
+	"strings"
 )
 
 type MysqlAuth struct {
@@ -29,9 +30,13 @@ func (auth *MysqlAuth) Verify(ctx context.Context, userDetail *models.UserDetail
 	if !auth.pwdVerify.VerifyPassword(userDetail.Password, user.Password) {
 		return nil, fmt.Errorf("password not macthed")
 	}
+	var roles []string
+	if user.RoleDetails.Valid {
+		roles = strings.Split(user.RoleDetails.String, ",")
+	}
 	claims := token.ClaimMap{
 		"user": user.Username,
-		"role": user.RoleDetail,
+		"role": roles,
 	}
 	return claims, err
 }
